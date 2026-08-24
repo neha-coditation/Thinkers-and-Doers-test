@@ -1,0 +1,1 @@
+Put 404.html in the repository root. GitHub Pages will use it for missing pages. The artwork is assets/404-page.png and the button links to index.html.
