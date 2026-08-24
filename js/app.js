@@ -436,7 +436,7 @@
         <img
           src="${escapeHTML(thumbnailUrl)}"
           alt="${escapeHTML(episode.name)}"
-          style="width:100%;height:100%;object-fit:cover;display:block;"
+          style="width:100%;height:100%;object-fit:cover;display:block;border:0;outline:0;"
         >
       `
       : "";
@@ -1529,8 +1529,34 @@ function renderUpcoming(episodes) {
   }
 
 
+  function ensureLatestPlaceholderStyles() {
+    if (document.getElementById("td-latest-placeholder-styles")) return;
+
+    const style = document.createElement("style");
+    style.id = "td-latest-placeholder-styles";
+    style.textContent = `
+      #latest-media img,
+      #latest-media > div,
+      #latest-content .td-guest-avatar,
+      #latest-content .td-light-avatar {
+        border: 0 !important;
+        outline: 0 !important;
+        box-shadow: none !important;
+      }
+
+      #latest-media {
+        border: 0 !important;
+        outline: 0 !important;
+        box-shadow: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+
   function initInteractions() {
     ensureVideoModal();
+    ensureLatestPlaceholderStyles();
     ensureGuestModal();
     ensureGuestModalResponsiveStyles();
 
