@@ -733,13 +733,9 @@ function renderUpcoming(episodes) {
       : `Episode ${String(episode.episodeNumber || "").padStart(3, "0")}`;
 
     return `
-      <a
-        href="${escapeHTML(episode.watchUrl || "#")}"
-        ${episode.watchUrl && episode.watchUrl !== "#"
-          ? 'target="_blank" rel="noopener noreferrer"'
-          : ""
-        }
-        class="td-card td-episode-card"
+  <div
+    class="td-card td-episode-card"
+    
         data-reveal="1"
         style="
           display:flex;
@@ -871,7 +867,7 @@ function renderUpcoming(episodes) {
 
         </div>
 
-      </a>
+     </div>
     `;
   }).join("");
 
