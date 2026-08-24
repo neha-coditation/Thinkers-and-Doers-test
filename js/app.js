@@ -733,9 +733,8 @@ function renderUpcoming(episodes) {
       : `Episode ${String(episode.episodeNumber || "").padStart(3, "0")}`;
 
     return `
-  <div
-    class="td-card td-episode-card"
-    
+      <div
+        class="td-card td-episode-card"
         data-reveal="1"
         style="
           display:flex;
@@ -867,7 +866,7 @@ function renderUpcoming(episodes) {
 
         </div>
 
-     </div>
+      </div>
     `;
   }).join("");
 
@@ -1011,12 +1010,23 @@ function renderUpcoming(episodes) {
       return;
     }
 
-    root.innerHTML = guests.slice(0, 8).map(guest => `
-      <div
+    window.tdGuests = guests.slice(0, 8);
+
+    root.innerHTML = window.tdGuests.map((guest, index) => `
+      <button
+        type="button"
+        class="td-guest-card"
+        data-guest-index="${index}"
         data-reveal="1"
+        aria-label="View ${escapeHTML(guest.name)}"
         style="
+          all:unset;
+          display:block;
+          width:100%;
+          cursor:pointer;
           opacity:0;
           transform:translateY(26px);
+          text-align:left;
         "
       >
         <div style="
@@ -1028,6 +1038,7 @@ function renderUpcoming(episodes) {
           justify-content:center;
           margin-bottom:18px;
           overflow:hidden;
+          transition:transform .35s ease, border-color .35s ease;
         ">
           ${
             guest.headshot
@@ -1039,6 +1050,7 @@ function renderUpcoming(episodes) {
                     width:100%;
                     height:100%;
                     object-fit:cover;
+                    display:block;
                   "
                   loading="lazy"
                 >
@@ -1050,7 +1062,9 @@ function renderUpcoming(episodes) {
                   letter-spacing:.14em;
                   text-transform:uppercase;
                   color:rgba(242,240,234,.6);
-                ">headshot</span>
+                ">
+                  headshot
+                </span>
               `
           }
         </div>
@@ -1072,11 +1086,288 @@ function renderUpcoming(episodes) {
         ">
           ${escapeHTML(guest.headline)}
         </div>
-
-        ${renderSocialLinks(guest)}
-      </div>
+      </button>
     `).join("");
+
+    root.querySelectorAll(".td-guest-card").forEach(card => {
+      card.addEventListener("click", () => {
+        const index = Number(card.dataset.guestIndex);
+        const guest = window.tdGuests[index];
+
+        if (guest) {
+          openGuestModal(guest);
+        }
+      });
+    });
+
+    reveal();
   }
+
+
+  function ensureGuestModal() {
+    if (document.querySelector(".td-guest-modal")) return;
+
+    document.body.insertAdjacentHTML("beforeend", `
+      <div
+        class="td-guest-modal"
+        aria-hidden="true"
+        style="
+          position:fixed;
+          inset:0;
+          z-index:999998;
+          display:none;
+          align-items:center;
+          justify-content:center;
+          padding:24px;
+          background:rgba(0,0,0,.88);
+        "
+      >
+        <div
+          class="td-guest-modal-panel"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Guest information"
+          style="
+            position:relative;
+            width:min(900px,94vw);
+            max-height:90vh;
+            overflow:auto;
+            background:#0C0B0A;
+            color:#F2F0EA;
+            border:1px solid rgba(242,240,234,.22);
+            box-shadow:0 30px 100px rgba(0,0,0,.65);
+          "
+        >
+          <button
+            type="button"
+            class="td-guest-close"
+            aria-label="Close guest information"
+            style="
+              position:absolute;
+              top:18px;
+              right:18px;
+              width:42px;
+              height:42px;
+              border:1px solid rgba(242,240,234,.35);
+              background:#0C0B0A;
+              color:#F2F0EA;
+              cursor:pointer;
+              font-size:24px;
+              line-height:1;
+              z-index:5;
+            "
+          >×</button>
+
+          <div
+            class="td-guest-modal-content"
+            style="
+              display:grid;
+              grid-template-columns:280px 1fr;
+              gap:40px;
+              padding:44px;
+            "
+          ></div>
+        </div>
+      </div>
+    `);
+
+    const modal = document.querySelector(".td-guest-modal");
+    const closeButton = modal.querySelector(".td-guest-close");
+
+    function closeGuestModal() {
+      modal.style.display = "none";
+      modal.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+    }
+
+    closeButton.addEventListener("click", closeGuestModal);
+
+    modal.addEventListener("click", event => {
+      if (event.target === modal) {
+        closeGuestModal();
+      }
+    });
+
+    document.addEventListener("keydown", event => {
+      if (
+        event.key === "Escape" &&
+        modal.style.display === "flex"
+      ) {
+        closeGuestModal();
+      }
+    });
+  }
+
+
+  function openGuestModal(guest) {
+    ensureGuestModal();
+
+    const modal = document.querySelector(".td-guest-modal");
+    const content = modal.querySelector(".td-guest-modal-content");
+
+    const socialLinks = guest.socialLinks?.length
+      ? `
+        <div style="
+          margin-top:28px;
+          padding-top:22px;
+          border-top:1px solid rgba(242,240,234,.18);
+        ">
+          <div style="
+            font-family:'IBM Plex Mono',monospace;
+            font-size:10px;
+            letter-spacing:.16em;
+            text-transform:uppercase;
+            color:rgba(242,240,234,.5);
+            margin-bottom:14px;
+          ">
+            Connect
+          </div>
+
+          <div style="
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+          ">
+            ${guest.socialLinks.map(link => `
+              <a
+                href="${escapeHTML(link.url || "#")}"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="${escapeHTML(link.provider)}"
+                style="
+                  width:42px;
+                  height:42px;
+                  border:1px solid rgba(242,240,234,.28);
+                  display:flex;
+                  align-items:center;
+                  justify-content:center;
+                  color:#F2F0EA;
+                  text-decoration:none;
+                  font-family:'IBM Plex Mono',monospace;
+                  font-size:13px;
+                  transition:background .25s ease, color .25s ease;
+                "
+              >
+                ${escapeHTML(socialIcon(link.provider))}
+              </a>
+            `).join("")}
+          </div>
+        </div>
+      `
+      : "";
+
+    content.innerHTML = `
+      <div>
+        <div style="
+          aspect-ratio:3/4;
+          background:#171513;
+          border:1px solid rgba(242,240,234,.2);
+          overflow:hidden;
+        ">
+          ${
+            guest.headshot
+              ? `
+                <img
+                  src="${escapeHTML(guest.headshot)}"
+                  alt="${escapeHTML(guest.name)}"
+                  style="
+                    width:100%;
+                    height:100%;
+                    object-fit:cover;
+                    display:block;
+                  "
+                >
+              `
+              : `
+                <div style="
+                  width:100%;
+                  height:100%;
+                  display:flex;
+                  align-items:center;
+                  justify-content:center;
+                  font-family:'IBM Plex Mono',monospace;
+                  font-size:10px;
+                  color:rgba(242,240,234,.5);
+                ">
+                  HEADSHOT
+                </div>
+              `
+          }
+        </div>
+      </div>
+
+      <div style="
+        min-width:0;
+        padding-top:10px;
+      ">
+        <div style="
+          font-family:'IBM Plex Mono',monospace;
+          font-size:10px;
+          letter-spacing:.16em;
+          text-transform:uppercase;
+          color:rgba(242,240,234,.5);
+          margin-bottom:14px;
+        ">
+          At the table
+        </div>
+
+        <h2 style="
+          margin:0 0 10px;
+          font-size:clamp(30px,4vw,48px);
+          line-height:1.05;
+          letter-spacing:-.035em;
+        ">
+          ${escapeHTML(guest.name)}
+        </h2>
+
+        ${
+          guest.headline
+            ? `
+              <div style="
+                font-family:'IBM Plex Mono',monospace;
+                font-size:12px;
+                line-height:1.6;
+                color:rgba(242,240,234,.55);
+                margin-bottom:28px;
+              ">
+                ${escapeHTML(guest.headline)}
+              </div>
+            `
+            : ""
+        }
+
+        ${
+          guest.bio
+            ? `
+              <div style="
+                font-size:16px;
+                line-height:1.75;
+                color:rgba(242,240,234,.72);
+                white-space:pre-line;
+              ">
+                ${escapeHTML(guest.bio)}
+              </div>
+            `
+            : `
+              <div style="
+                font-family:'IBM Plex Mono',monospace;
+                font-size:11px;
+                color:rgba(242,240,234,.45);
+              ">
+                Bio coming soon.
+              </div>
+            `
+        }
+
+        ${socialLinks}
+      </div>
+    `;
+
+    modal.style.display = "flex";
+    modal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  }
+
 
   function reveal() {
     const elements =
@@ -1209,8 +1500,39 @@ function renderUpcoming(episodes) {
     });
   }
 
+  function ensureGuestModalResponsiveStyles() {
+    if (document.getElementById("td-guest-modal-responsive")) return;
+
+    const style = document.createElement("style");
+    style.id = "td-guest-modal-responsive";
+    style.textContent = `
+      @media (max-width: 700px) {
+        .td-guest-modal {
+          padding: 12px !important;
+        }
+        .td-guest-modal-content {
+          grid-template-columns: 1fr !important;
+          gap: 24px !important;
+          padding: 28px 22px !important;
+        }
+        .td-guest-modal-panel {
+          width: 96vw !important;
+        }
+      }
+
+      .td-guest-card:hover > div:first-child {
+        transform: translateY(-4px);
+        border-color: rgba(242,240,234,.55) !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+
   function initInteractions() {
     ensureVideoModal();
+    ensureGuestModal();
+    ensureGuestModalResponsiveStyles();
 
     const hero = $("#top");
 
