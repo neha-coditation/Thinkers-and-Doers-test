@@ -765,16 +765,18 @@ function renderUpcoming(episodes) {
           <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:${mutedColor};margin-bottom:10px;">
             ${escapeHTML(episodeLabel)}
           </div>
-          <div style="font-family:Archivo,sans-serif;font-weight:800;font-size:24px;line-height:1.08;">
+          <div style="
+            font-family:Archivo,sans-serif;
+            font-weight:800;
+            font-size:clamp(24px,2.2vw,32px);
+            line-height:1.08;
+            letter-spacing:-.03em;
+          ">
             ${escapeHTML(dateLabel)}
           </div>
         </div>
 
         <div style="flex:1;min-width:0;">
-          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:${mutedColor};margin-bottom:12px;">
-            ${escapeHTML(dateLabel)}
-          </div>
-
           <div style="font-size:clamp(20px,2vw,27px);font-weight:700;letter-spacing:-.025em;line-height:1.2;">
             ${escapeHTML(episode.name)}
           </div>
