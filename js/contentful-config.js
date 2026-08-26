@@ -1,8 +1,9 @@
+// Generated during deployment. Do not commit js/config.js.
 window.CONTENTFUL_CONFIG = {
-  spaceId: "9pexc9p6gihi",
-  environment: "master",
-  deliveryToken: "3a970c4a77a22a735324dc13f2964419f3f745c1ff571371b9b0977159bd7a9a",
-  contentType: "episode",
-  guestContentType: "guest",
-  enabled: true
+  spaceId: "__CONTENTFUL_SPACE_ID__",
+  deliveryToken: "__CONTENTFUL_DELIVERY_TOKEN__"
+};
+
+window.WEB3FORMS_CONFIG = {
+  accessKey: "__WEB3FORMS_ACCESS_KEY__"
 };
