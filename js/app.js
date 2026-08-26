@@ -1440,6 +1440,293 @@ function renderUpcoming(episodes) {
   }
 
 
+
+  function ensureCookieConsent() {
+    if (document.querySelector(".td-cookie-banner")) return;
+
+    const stored = localStorage.getItem("td_cookie_consent");
+
+    const style = document.createElement("style");
+    style.id = "td-cookie-consent-styles";
+    style.textContent = `
+      .td-cookie-banner {
+        position: fixed;
+        left: 20px;
+        right: 20px;
+        bottom: 20px;
+        z-index: 1000000;
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 22px 24px;
+        background: #F2F0EA;
+        color: #0C0B0A;
+        border: 1px solid rgba(12,11,10,.18);
+        box-shadow: 0 24px 70px rgba(0,0,0,.35);
+      }
+      .td-cookie-banner-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+      .td-cookie-copy {
+        min-width: 0;
+      }
+      .td-cookie-title {
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: -.02em;
+        margin-bottom: 7px;
+      }
+      .td-cookie-text {
+        font-size: 13px;
+        line-height: 1.55;
+        color: rgba(12,11,10,.68);
+        max-width: 650px;
+      }
+      .td-cookie-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        flex: 0 0 auto;
+      }
+      .td-cookie-btn {
+        appearance: none;
+        border: 1px solid rgba(12,11,10,.28);
+        background: transparent;
+        color: #0C0B0A;
+        padding: 12px 16px;
+        cursor: pointer;
+        font-family: 'IBM Plex Mono', monospace;
+        font-size: 10px;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+      }
+      .td-cookie-btn.primary {
+        background: #0C0B0A;
+        color: #F2F0EA;
+        border-color: #0C0B0A;
+      }
+      .td-cookie-link {
+        color: #0C0B0A;
+        text-decoration: underline;
+      }
+      .td-cookie-settings {
+        display: none;
+        margin-top: 18px;
+        padding-top: 18px;
+        border-top: 1px solid rgba(12,11,10,.18);
+      }
+      .td-cookie-settings.open { display: block; }
+      .td-cookie-setting-row {
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:20px;
+        padding:10px 0;
+      }
+      .td-cookie-setting-row strong { font-size:13px; }
+      .td-cookie-setting-row span { font-size:12px; color:rgba(12,11,10,.6); }
+      .td-cookie-toggle {
+        appearance:none;
+        width:42px;
+        height:24px;
+        border-radius:999px;
+        border:1px solid rgba(12,11,10,.3);
+        background:rgba(12,11,10,.12);
+        position:relative;
+        flex:0 0 42px;
+      }
+      .td-cookie-toggle::after {
+        content:"";
+        position:absolute;
+        width:18px;
+        height:18px;
+        left:2px;
+        top:2px;
+        border-radius:50%;
+        background:#0C0B0A;
+      }
+      .td-cookie-toggle.on {
+        background:#0C0B0A;
+      }
+      .td-cookie-toggle.on::after {
+        left:20px;
+        background:#F2F0EA;
+      }
+      @media (max-width: 700px) {
+        .td-cookie-banner {
+          left: 12px;
+          right: 12px;
+          bottom: 12px;
+          padding: 18px;
+        }
+        .td-cookie-banner-inner {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .td-cookie-actions {
+          width:100%;
+        }
+        .td-cookie-btn {
+          flex:1 1 auto;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+
+    const banner = document.createElement("div");
+    banner.className = "td-cookie-banner";
+    banner.setAttribute("role", "dialog");
+    banner.setAttribute("aria-label", "Cookie preferences");
+    banner.innerHTML = `
+      <div class="td-cookie-banner-inner">
+        <div class="td-cookie-copy">
+          <div class="td-cookie-title">We use cookies</div>
+          <div class="td-cookie-text">
+            We use essential storage to make this website work. Non-essential analytics or advertising
+            technologies will only be enabled according to your choices where consent is required.
+            <a class="td-cookie-link" href="cookies.html">Cookie Policy</a>
+          </div>
+        </div>
+        <div class="td-cookie-actions">
+          <button type="button" class="td-cookie-btn" data-cookie-action="reject">Reject non-essential</button>
+          <button type="button" class="td-cookie-btn" data-cookie-action="settings">Manage</button>
+          <button type="button" class="td-cookie-btn primary" data-cookie-action="accept">Accept all</button>
+        </div>
+      </div>
+
+      <div class="td-cookie-settings">
+        <div class="td-cookie-setting-row">
+          <div>
+            <strong>Essential</strong><br>
+            <span>Required for core site functions.</span>
+          </div>
+          <span class="td-cookie-toggle on" aria-hidden="true"></span>
+        </div>
+        <div class="td-cookie-setting-row">
+          <div>
+            <strong>Analytics</strong><br>
+            <span>Used to understand how visitors use the site.</span>
+          </div>
+          <button type="button" class="td-cookie-toggle" data-cookie-toggle="analytics" aria-label="Toggle analytics consent"></button>
+        </div>
+        <div class="td-cookie-setting-row">
+          <div>
+            <strong>Advertising</strong><br>
+            <span>Used for advertising or personalized advertising.</span>
+          </div>
+          <button type="button" class="td-cookie-toggle" data-cookie-toggle="advertising" aria-label="Toggle advertising consent"></button>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+          <button type="button" class="td-cookie-btn primary" data-cookie-action="save">Save preferences</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(banner);
+
+    const analyticsToggle = banner.querySelector('[data-cookie-toggle="analytics"]');
+    const advertisingToggle = banner.querySelector('[data-cookie-toggle="advertising"]');
+    let choices = { analytics: false, advertising: false };
+
+    function applyConsent(next) {
+      choices = {
+        analytics: !!next.analytics,
+        advertising: !!next.advertising
+      };
+
+      localStorage.setItem("td_cookie_consent", JSON.stringify(choices));
+
+      // If Google tags are added later, these calls communicate the user's
+      // choices to Google Consent Mode.
+      if (typeof window.gtag === "function") {
+        window.gtag("consent", "update", {
+          analytics_storage: choices.analytics ? "granted" : "denied",
+          ad_storage: choices.advertising ? "granted" : "denied",
+          ad_user_data: choices.advertising ? "granted" : "denied",
+          ad_personalization: choices.advertising ? "granted" : "denied"
+        });
+      }
+
+      banner.remove();
+      showCookieSettingsButton();
+    }
+
+    function updateToggles() {
+      analyticsToggle.classList.toggle("on", choices.analytics);
+      advertisingToggle.classList.toggle("on", choices.advertising);
+    }
+
+    analyticsToggle.addEventListener("click", () => {
+      choices.analytics = !choices.analytics;
+      updateToggles();
+    });
+
+    advertisingToggle.addEventListener("click", () => {
+      choices.advertising = !choices.advertising;
+      updateToggles();
+    });
+
+    banner.querySelector('[data-cookie-action="accept"]').addEventListener("click", () => {
+      applyConsent({ analytics: true, advertising: true });
+    });
+
+    banner.querySelector('[data-cookie-action="reject"]').addEventListener("click", () => {
+      applyConsent({ analytics: false, advertising: false });
+    });
+
+    banner.querySelector('[data-cookie-action="settings"]').addEventListener("click", () => {
+      banner.querySelector(".td-cookie-settings").classList.toggle("open");
+    });
+
+    banner.querySelector('[data-cookie-action="save"]').addEventListener("click", () => {
+      applyConsent(choices);
+    });
+
+    function showCookieSettingsButton() {
+      if (document.querySelector(".td-cookie-settings-fab")) return;
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "td-cookie-settings-fab";
+      button.textContent = "Cookie settings";
+      button.style.cssText = `
+        position:fixed;
+        left:16px;
+        bottom:16px;
+        z-index:999998;
+        padding:9px 12px;
+        border:1px solid rgba(242,240,234,.3);
+        background:#0C0B0A;
+        color:#F2F0EA;
+        font-family:'IBM Plex Mono',monospace;
+        font-size:9px;
+        letter-spacing:.1em;
+        text-transform:uppercase;
+        cursor:pointer;
+      `;
+      button.addEventListener("click", () => {
+        const existing = document.querySelector(".td-cookie-banner");
+        if (existing) return;
+
+        localStorage.removeItem("td_cookie_consent");
+        ensureCookieConsent();
+      });
+      document.body.appendChild(button);
+    }
+
+    if (stored) {
+      try {
+        const saved = JSON.parse(stored);
+        applyConsent(saved);
+        return;
+      } catch (_) {
+        localStorage.removeItem("td_cookie_consent");
+      }
+    }
+  }
+
   function initInteractions() {
     ensureVideoModal();
     ensureLatestPlaceholderStyles();
@@ -1662,6 +1949,9 @@ if (form) {
 
   document.addEventListener(
     "DOMContentLoaded",
-    main
+    () => {
+      ensureCookieConsent();
+      main();
+    }
   );
 })();
