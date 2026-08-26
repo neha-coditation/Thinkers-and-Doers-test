@@ -665,207 +665,122 @@ const meta = [
 
 function renderUpcoming(episodes) {
   const root = $("#upcoming-list");
-
   if (!root) return;
 
   if (!episodes.length) {
     root.innerHTML = `
-      <div class="td-empty">
-        No upcoming episodes yet. Add one in Contentful.
-      </div>
+      <div class="td-empty">No upcoming episodes yet. Add one in Contentful.</div>
     `;
     return;
   }
 
+  const formatUpcomingDate = date => {
+    if (!date) return "Date TBA";
+    const parsed = new Date(date);
+    if (Number.isNaN(parsed.getTime())) return "Date TBA";
+    return parsed.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    });
+  };
+
   root.innerHTML = episodes.map((episode, index) => {
     const isNextUp = index === 0;
+    const textColor = isNextUp ? "#F2F0EA" : "#0C0B0A";
+    const mutedColor = isNextUp ? "rgba(242,240,234,.55)" : "rgba(12,11,10,.55)";
+    const dateLabel = formatUpcomingDate(episode.episodeDate);
 
-    // Use the Contentful Episode Thumbnail first.
-    // Fall back to stillImage only if thumbnail is unavailable.
-    const thumbnail =
-      episode.episodeThumbnail ||
-      episode.stillImage ||
-      "";
+    const thumbnail = episode.episodeThumbnail || episode.stillImage || "";
 
     const image = thumbnail
       ? `
-        <img
-          src="${escapeHTML(thumbnail)}"
-          alt="${escapeHTML(episode.name)}"
-          loading="lazy"
-          style="
-            width:100%;
-            height:100%;
-            object-fit:cover;
-            display:block;
-          "
-        >
+        <img src="${escapeHTML(thumbnail)}" alt="${escapeHTML(episode.name)}" loading="lazy"
+          style="width:100%;height:100%;object-fit:cover;display:block;">
       `
       : `
-        <div style="
-          width:100%;
-          height:100%;
-          background:repeating-linear-gradient(
-            135deg,
-            rgba(242,240,234,.16) 0 2px,
-            transparent 2px 11px
-          );
-          display:flex;
-          align-items:center;
-          justify-content:center;
-        ">
-          <span style="
-            font-family:'IBM Plex Mono',monospace;
-            font-size:9px;
-            letter-spacing:.14em;
-            text-transform:uppercase;
-            color:rgba(242,240,234,.55);
-          ">
-            episode thumbnail
+        <div style="width:100%;height:100%;background:repeating-linear-gradient(135deg,rgba(242,240,234,.16) 0 2px,transparent 2px 11px);display:flex;align-items:center;justify-content:center;">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:${mutedColor};">
+            episode still
           </span>
         </div>
       `;
 
-    const guestCount = episode.guests?.length || 0;
+    const guests = Array.isArray(episode.guests)
+      ? episode.guests.filter(guest => guest && guest.name)
+      : [];
+
+    const guestMarkup = guests.length
+      ? `
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;margin-top:16px;">
+          ${guests.map(guest => `
+            <div style="display:flex;align-items:center;gap:9px;min-width:0;">
+              <div style="
+                width:38px;height:38px;flex:0 0 38px;border-radius:50%;overflow:hidden;
+                border:1px solid ${isNextUp ? "rgba(242,240,234,.3)" : "rgba(12,11,10,.22)"};
+                background:${isNextUp ? "#171513" : "#EAE8E2"};
+              ">
+                ${
+                  guest.headshot
+                    ? `<img src="${escapeHTML(guest.headshot)}" alt="${escapeHTML(guest.name)}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;">`
+                    : `<span style="display:block;width:100%;height:100%;background:repeating-linear-gradient(135deg,${isNextUp ? "rgba(242,240,234,.16)" : "rgba(12,11,10,.12)"} 0 2px,transparent 2px 9px);"></span>`
+                }
+              </div>
+              <span style="font-size:13px;font-weight:600;line-height:1.25;color:${textColor};white-space:nowrap;">
+                ${escapeHTML(guest.name)}
+              </span>
+            </div>
+          `).join("")}
+        </div>
+      `
+      : `
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;color:${mutedColor};margin-top:16px;">
+          Guests announced soon
+        </div>
+      `;
 
     const episodeLabel = isNextUp
       ? "Next up"
       : `Episode ${String(episode.episodeNumber || "").padStart(3, "0")}`;
 
     return `
-      <div
-        class="td-card td-episode-card"
-        data-reveal="1"
+      <div class="td-card td-episode-card" data-reveal="1"
         style="
-          display:flex;
-          align-items:center;
-          gap:30px;
-          padding:28px 32px;
+          display:flex;align-items:center;gap:30px;padding:28px 32px;
           background:${isNextUp ? "#0C0B0A" : "#F2F0EA"};
-          color:${isNextUp ? "#F2F0EA" : "#0C0B0A"};
-          border:1px solid ${
-            isNextUp
-              ? "rgba(12,11,10,.08)"
-              : "rgba(12,11,10,.20)"
-          };
-          text-decoration:none;
-          opacity:0;
-          transform:translateY(22px);
+          color:${textColor};
+          border:1px solid ${isNextUp ? "rgba(12,11,10,.08)" : "rgba(12,11,10,.20)"};
+          opacity:0;transform:translateY(22px);
         "
       >
-
-        <!-- Episode thumbnail -->
         <div style="
-          flex:0 0 210px;
-          width:210px;
-          height:132px;
-          overflow:hidden;
-          border:1px solid ${
-            isNextUp
-              ? "rgba(242,240,234,.25)"
-              : "rgba(12,11,10,.22)"
-          };
+          flex:0 0 210px;width:210px;height:132px;overflow:hidden;
+          border:1px solid ${isNextUp ? "rgba(242,240,234,.25)" : "rgba(12,11,10,.22)"};
           background:${isNextUp ? "#171513" : "#EAE8E2"};
         ">
           ${image}
         </div>
 
-        <!-- Episode number -->
-        <div style="
-          flex:0 0 135px;
-          min-width:135px;
-        ">
-          <div style="
-            font-family:'IBM Plex Mono',monospace;
-            font-size:11px;
-            letter-spacing:.16em;
-            text-transform:uppercase;
-            color:${
-              isNextUp
-                ? "rgba(242,240,234,.55)"
-                : "rgba(12,11,10,.55)"
-            };
-            margin-bottom:10px;
-          ">
+        <div style="flex:0 0 135px;min-width:135px;">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:${mutedColor};margin-bottom:10px;">
             ${escapeHTML(episodeLabel)}
           </div>
-
-          ${
-            isNextUp
-              ? `
-                <div style="
-                  font-family:Archivo,sans-serif;
-                  font-weight:800;
-                  font-size:32px;
-                  line-height:1;
-                ">
-                  TBA
-                </div>
-              `
-              : `
-                <div style="
-                  font-family:Archivo,sans-serif;
-                  font-weight:800;
-                  font-size:32px;
-                  line-height:1;
-                ">
-                  TBA
-                </div>
-              `
-          }
+          <div style="font-family:Archivo,sans-serif;font-weight:800;font-size:24px;line-height:1.08;">
+            ${escapeHTML(dateLabel)}
+          </div>
         </div>
 
-        <!-- Episode information -->
-        <div style="
-          flex:1;
-          min-width:0;
-        ">
-
-          <div style="
-            font-family:'IBM Plex Mono',monospace;
-            font-size:11px;
-            letter-spacing:.14em;
-            text-transform:uppercase;
-            color:${
-              isNextUp
-                ? "rgba(242,240,234,.55)"
-                : "rgba(12,11,10,.55)"
-            };
-            margin-bottom:12px;
-          ">
-            ${escapeHTML(episode.format || "Conversation")}
-            ·
-            ${guestCount}
-            guest${guestCount === 1 ? "" : "s"}
+        <div style="flex:1;min-width:0;">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:${mutedColor};margin-bottom:12px;">
+            ${escapeHTML(dateLabel)}
           </div>
 
-          <div style="
-            font-size:clamp(20px,2vw,27px);
-            font-weight:700;
-            letter-spacing:-.025em;
-            line-height:1.2;
-          ">
+          <div style="font-size:clamp(20px,2vw,27px);font-weight:700;letter-spacing:-.025em;line-height:1.2;">
             ${escapeHTML(episode.name)}
           </div>
 
-          <div style="
-            font-family:'IBM Plex Mono',monospace;
-            font-size:11px;
-            letter-spacing:.08em;
-            color:${
-              isNextUp
-                ? "rgba(242,240,234,.55)"
-                : "rgba(12,11,10,.55)"
-            };
-            margin-top:14px;
-          ">
-            ${escapeHTML(
-              episode.description || "Details coming soon."
-            )}
-          </div>
-
+          ${guestMarkup}
         </div>
-
       </div>
     `;
   }).join("");
@@ -873,8 +788,7 @@ function renderUpcoming(episodes) {
   reveal();
 }
 
-  
-  function renderArchive(episodes) {
+    function renderArchive(episodes) {
     const root = $("#archive-list");
 
     if (!root) return;
@@ -980,163 +894,49 @@ function renderUpcoming(episodes) {
 
   function renderGuests(episodes) {
     const root = $("#guest-grid");
-
     if (!root) return;
 
     const guestMap = new Map();
 
-    // Only show guests from published episodes with a headshot.
-    episodes
-      .filter(isPublic)
-      .forEach(episode => {
-        (episode.guests || []).forEach(guest => {
-          if (
-            guest.name &&
-            guest.headshot &&
-            !guestMap.has(guest.id || guest.name)
-          ) {
-            guestMap.set(guest.id || guest.name, guest);
-          }
-        });
+    episodes.filter(isPublic).forEach(episode => {
+      (episode.guests || []).forEach(guest => {
+        if (guest.name && guest.headshot && !guestMap.has(guest.id || guest.name)) {
+          guestMap.set(guest.id || guest.name, guest);
+        }
       });
+    });
 
-    const guests = [...guestMap.values()].slice(0, 8);
-
-    window.tdGuests = guests;
+    window.tdGuests = [...guestMap.values()].slice(0, 8);
 
     root.innerHTML = `
-      ${guests.map((guest, index) => `
-        <button
-          type="button"
-          class="td-guest-card"
-          data-guest-index="${index}"
-          data-reveal="1"
+      ${window.tdGuests.map((guest, index) => `
+        <button type="button" class="td-guest-card" data-guest-index="${index}" data-reveal="1"
           aria-label="View ${escapeHTML(guest.name)}"
-          style="
-            all:unset;
-            display:block;
-            width:100%;
-            cursor:pointer;
-            opacity:0;
-            transform:translateY(26px);
-            text-align:left;
-          "
-        >
-          <div style="
-            aspect-ratio:3/4;
-            background:#171513;
-            border:1px solid rgba(242,240,234,.2);
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            margin-bottom:18px;
-            overflow:hidden;
-            transition:transform .35s ease, border-color .35s ease;
-          ">
-            <img
-              src="${escapeHTML(guest.headshot)}"
-              alt="${escapeHTML(guest.name)}"
-              style="width:100%;height:100%;object-fit:cover;display:block;"
-              loading="lazy"
-            >
+          style="all:unset;display:block;width:100%;cursor:pointer;opacity:0;transform:translateY(26px);text-align:left;">
+          <div style="aspect-ratio:3/4;background:#171513;border:1px solid rgba(242,240,234,.2);display:flex;align-items:center;justify-content:center;margin-bottom:18px;overflow:hidden;transition:transform .35s ease,border-color .35s ease;">
+            <img src="${escapeHTML(guest.headshot)}" alt="${escapeHTML(guest.name)}"
+              style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy">
           </div>
-
-          <div style="
-            font-size:18px;
-            font-weight:700;
-            letter-spacing:-.015em;
-            margin-bottom:5px;
-          ">
-            ${escapeHTML(guest.name)}
-          </div>
-
-          <div style="
-            font-family:'IBM Plex Mono',monospace;
-            font-size:12px;
-            color:rgba(242,240,234,.55);
-            line-height:1.5;
-          ">
-            ${escapeHTML(guest.headline)}
-          </div>
+          <div style="font-size:18px;font-weight:700;letter-spacing:-.015em;margin-bottom:5px;">${escapeHTML(guest.name)}</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:rgba(242,240,234,.55);line-height:1.5;">${escapeHTML(guest.headline)}</div>
         </button>
       `).join("")}
 
-      <!-- Could be you -->
-      <a
-        href="#apply"
-        data-reveal="1"
-        style="
-          display:flex;
-          flex-direction:column;
-          opacity:0;
-          transform:translateY(26px);
-          text-decoration:none;
-          color:#F2F0EA;
-        "
-      >
-        <div
-          style="
-            aspect-ratio:3/4;
-            border:1px dashed rgba(242,240,234,.4);
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            justify-content:center;
-            gap:12px;
-            margin-bottom:18px;
-            text-align:center;
-            padding:20px;
-            transition:background .35s ease, border-color .35s ease, transform .35s ease;
-          "
-          onmouseenter="this.style.background='rgba(242,240,234,.08)';this.style.borderColor='#F2F0EA';this.style.transform='translateY(-6px)'"
-          onmouseleave="this.style.background='transparent';this.style.borderColor='rgba(242,240,234,.4)';this.style.transform='translateY(0)'"
-        >
-          <span style="
-            font-family:'Instrument Serif',serif;
-            font-style:italic;
-            font-size:48px;
-            line-height:1;
-          ">&amp;</span>
-
-          <span style="
-            font-family:'IBM Plex Mono',monospace;
-            font-size:10px;
-            letter-spacing:.14em;
-            text-transform:uppercase;
-            color:rgba(242,240,234,.6);
-          ">
-            the empty chair
-          </span>
+      <a href="#apply" data-reveal="1"
+        style="display:flex;flex-direction:column;opacity:0;transform:translateY(26px);text-decoration:none;color:#F2F0EA;">
+        <div style="aspect-ratio:3/4;border:1px dashed rgba(242,240,234,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;margin-bottom:18px;text-align:center;padding:20px;transition:background .35s ease,border-color .35s ease,transform .35s ease;">
+          <span style="font-family:'Instrument Serif',serif;font-style:italic;font-size:48px;line-height:1;">&amp;</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(242,240,234,.6);">the empty chair</span>
         </div>
-
-        <div style="
-          font-size:18px;
-          font-weight:700;
-          letter-spacing:-.015em;
-          margin-bottom:5px;
-        ">
-          Could be you
-        </div>
-
-        <div style="
-          font-family:'IBM Plex Mono',monospace;
-          font-size:12px;
-          color:rgba(242,240,234,.55);
-          line-height:1.5;
-        ">
-          Apply below
-        </div>
+        <div style="font-size:18px;font-weight:700;letter-spacing:-.015em;margin-bottom:5px;">Could be you</div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:rgba(242,240,234,.55);line-height:1.5;">Apply below</div>
       </a>
     `;
 
     root.querySelectorAll(".td-guest-card").forEach(card => {
       card.addEventListener("click", () => {
-        const index = Number(card.dataset.guestIndex);
-        const guest = window.tdGuests[index];
-
-        if (guest) {
-          openGuestModal(guest);
-        }
+        const guest = window.tdGuests[Number(card.dataset.guestIndex)];
+        if (guest) openGuestModal(guest);
       });
     });
 
