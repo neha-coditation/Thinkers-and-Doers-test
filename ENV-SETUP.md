@@ -1,39 +1,60 @@
 # Environment / API key setup
 
-The API keys were removed from `js/app.js`.
+There is one configuration flow for the site:
+
+```text
+GitHub Actions Secrets
+        ↓
+build-config.js
+        ↓
+js/config.js
+        ↓
+app.js
+```
 
 ## Local development
 
-1. Copy `.env.example` to `.env`.
-2. Put your real values in `.env`.
-3. Run:
+Create `.env` from `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+Put the values in `.env`, then run:
 
 ```bash
 node build-config.js
 ```
 
-4. Open the site using a local web server.
+This creates `js/config.js`.
 
-`.env` is ignored by Git.
+**Do not commit `.env` or `js/config.js`.**
 
 ## GitHub Pages
 
-In GitHub:
-
-**Settings → Secrets and variables → Actions → New repository secret**
-
-Create:
+Add these repository secrets:
 
 - `CONTENTFUL_SPACE_ID`
 - `CONTENTFUL_DELIVERY_TOKEN`
 - `WEB3FORMS_ACCESS_KEY`
 
-The included `.github/workflows/deploy.yml` generates `js/config.js` during deployment.
+The deployment workflow generates `js/config.js` automatically.
 
-### Important security note
+## Important
 
-Because this is a browser/static website, values placed in `js/config.js` are visible to visitors after deployment. Therefore:
+There should not be another `contentful-config` file containing duplicate credentials.
 
-- Contentful Delivery API credentials are normally client-side/public by design; restrict the Contentful token to the required environment/content access.
-- A Web3Forms access key is also used by the browser and should be treated as a client-side form identifier.
-- **Do not put database passwords, AWS secret keys, private API keys, or other true secrets in this frontend.** Those require a backend/serverless proxy.
+`app.js` only reads:
+
+```js
+window.CONTENTFUL_CONFIG.spaceId
+window.CONTENTFUL_CONFIG.deliveryToken
+```
+
+and:
+
+```js
+window.WEB3FORMS_CONFIG.accessKey
+```
+
+For a static frontend, browser-required values can still be visible in the deployed JavaScript. True private secrets must be kept behind a backend/serverless function.
