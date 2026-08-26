@@ -985,88 +985,128 @@ function renderUpcoming(episodes) {
 
     const guestMap = new Map();
 
-    episodes.forEach(episode => {
-      (episode.guests || []).forEach(guest => {
-        if (
-          guest.name &&
-          !guestMap.has(guest.id || guest.name)
-        ) {
-          guestMap.set(
-            guest.id || guest.name,
-            guest
-          );
-        }
+    // Only show guests from published episodes with a headshot.
+    episodes
+      .filter(isPublic)
+      .forEach(episode => {
+        (episode.guests || []).forEach(guest => {
+          if (
+            guest.name &&
+            guest.headshot &&
+            !guestMap.has(guest.id || guest.name)
+          ) {
+            guestMap.set(guest.id || guest.name, guest);
+          }
+        });
       });
-    });
 
-    const guests = [...guestMap.values()];
+    const guests = [...guestMap.values()].slice(0, 8);
 
-    if (!guests.length) {
-      root.innerHTML = `
-        <div class="td-empty" style="grid-column:1/-1">
-          Guests will appear here when episodes have guest entries.
-        </div>
-      `;
-      return;
-    }
+    window.tdGuests = guests;
 
-    window.tdGuests = guests.slice(0, 8);
+    root.innerHTML = `
+      ${guests.map((guest, index) => `
+        <button
+          type="button"
+          class="td-guest-card"
+          data-guest-index="${index}"
+          data-reveal="1"
+          aria-label="View ${escapeHTML(guest.name)}"
+          style="
+            all:unset;
+            display:block;
+            width:100%;
+            cursor:pointer;
+            opacity:0;
+            transform:translateY(26px);
+            text-align:left;
+          "
+        >
+          <div style="
+            aspect-ratio:3/4;
+            background:#171513;
+            border:1px solid rgba(242,240,234,.2);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            margin-bottom:18px;
+            overflow:hidden;
+            transition:transform .35s ease, border-color .35s ease;
+          ">
+            <img
+              src="${escapeHTML(guest.headshot)}"
+              alt="${escapeHTML(guest.name)}"
+              style="width:100%;height:100%;object-fit:cover;display:block;"
+              loading="lazy"
+            >
+          </div>
 
-    root.innerHTML = window.tdGuests.map((guest, index) => `
-      <button
-        type="button"
-        class="td-guest-card"
-        data-guest-index="${index}"
+          <div style="
+            font-size:18px;
+            font-weight:700;
+            letter-spacing:-.015em;
+            margin-bottom:5px;
+          ">
+            ${escapeHTML(guest.name)}
+          </div>
+
+          <div style="
+            font-family:'IBM Plex Mono',monospace;
+            font-size:12px;
+            color:rgba(242,240,234,.55);
+            line-height:1.5;
+          ">
+            ${escapeHTML(guest.headline)}
+          </div>
+        </button>
+      `).join("")}
+
+      <!-- Could be you -->
+      <a
+        href="#apply"
         data-reveal="1"
-        aria-label="View ${escapeHTML(guest.name)}"
         style="
-          all:unset;
-          display:block;
-          width:100%;
-          cursor:pointer;
+          display:flex;
+          flex-direction:column;
           opacity:0;
           transform:translateY(26px);
-          text-align:left;
+          text-decoration:none;
+          color:#F2F0EA;
         "
       >
-        <div style="
-          aspect-ratio:3/4;
-          background:#171513;
-          border:1px solid rgba(242,240,234,.2);
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          margin-bottom:18px;
-          overflow:hidden;
-          transition:transform .35s ease, border-color .35s ease;
-        ">
-          ${
-            guest.headshot
-              ? `
-                <img
-                  src="${escapeHTML(guest.headshot)}"
-                  alt="${escapeHTML(guest.name)}"
-                  style="
-                    width:100%;
-                    height:100%;
-                    object-fit:cover;
-                    display:block;
-                  "
-                  loading="lazy"
-                >
-              `
-              : `
-                <span style="
-                  font-family:'IBM Plex Mono',monospace;
-                  font-size:10px;
-                  letter-spacing:.14em;
-                  text-transform:uppercase;
-                  color:rgba(242,240,234,.6);
-                ">
-                  headshot
-                </span>
-              `
-          }
+        <div
+          style="
+            aspect-ratio:3/4;
+            border:1px dashed rgba(242,240,234,.4);
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            gap:12px;
+            margin-bottom:18px;
+            text-align:center;
+            padding:20px;
+            transition:background .35s ease, border-color .35s ease, transform .35s ease;
+          "
+          onmouseenter="this.style.background='rgba(242,240,234,.08)';this.style.borderColor='#F2F0EA';this.style.transform='translateY(-6px)'"
+          onmouseleave="this.style.background='transparent';this.style.borderColor='rgba(242,240,234,.4)';this.style.transform='translateY(0)'"
+        >
+          <span style="
+            font-family:'Instrument Serif',serif;
+            font-style:italic;
+            font-size:48px;
+            line-height:1;
+          ">&amp;</span>
+
+          <span style="
+            font-family:'IBM Plex Mono',monospace;
+            font-size:10px;
+            letter-spacing:.14em;
+            text-transform:uppercase;
+            color:rgba(242,240,234,.6);
+          ">
+            the empty chair
+          </span>
         </div>
 
         <div style="
@@ -1075,7 +1115,7 @@ function renderUpcoming(episodes) {
           letter-spacing:-.015em;
           margin-bottom:5px;
         ">
-          ${escapeHTML(guest.name)}
+          Could be you
         </div>
 
         <div style="
@@ -1084,10 +1124,10 @@ function renderUpcoming(episodes) {
           color:rgba(242,240,234,.55);
           line-height:1.5;
         ">
-          ${escapeHTML(guest.headline)}
+          Apply below
         </div>
-      </button>
-    `).join("");
+      </a>
+    `;
 
     root.querySelectorAll(".td-guest-card").forEach(card => {
       card.addEventListener("click", () => {
@@ -1102,7 +1142,6 @@ function renderUpcoming(episodes) {
 
     reveal();
   }
-
 
   function ensureGuestModal() {
     if (document.querySelector(".td-guest-modal")) return;
@@ -1758,12 +1797,10 @@ if (form) {
       renderArchive(archiveEpisodes);
 
       /*
-       * Guests are collected from all published/upcoming episodes.
+       * At the table shows only guests from published episodes.
+       * Guests without a headshot are excluded.
        */
-      renderGuests([
-        ...publicEpisodes,
-        ...upcomingEpisodes
-      ]);
+      renderGuests(publicEpisodes);
 
       reveal();
       initInteractions();
