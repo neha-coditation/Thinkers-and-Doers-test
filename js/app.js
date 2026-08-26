@@ -19,9 +19,10 @@
 
   const CONFIG = window.CONTENTFUL_CONFIG || {
     spaceId: "",
-    environment: "master",
     deliveryToken: "",
+    environment: "master",
     contentType: "episode",
+    guestContentType: "guest",
     enabled: false
   };
 
