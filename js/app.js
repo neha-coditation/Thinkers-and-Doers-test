@@ -781,6 +781,22 @@ function renderUpcoming(episodes) {
             ${escapeHTML(episode.name)}
           </div>
 
+          ${
+            episode.description
+              ? `
+                <div style="
+                  font-size:14px;
+                  line-height:1.55;
+                  color:${mutedColor};
+                  margin-top:10px;
+                  max-width:62ch;
+                ">
+                  ${escapeHTML(episode.description)}
+                </div>
+              `
+              : ""
+          }
+
           ${guestMarkup}
         </div>
       </div>
@@ -1565,7 +1581,17 @@ if (form) {
       const upcomingEpisodes =
         episodes
           .filter(isUpcoming)
-          .sort(sortByNumberAscending);
+          .sort((a, b) => {
+            const numberDiff =
+              Number(a.episodeNumber || 0) -
+              Number(b.episodeNumber || 0);
+
+            if (numberDiff !== 0) return numberDiff;
+
+            return String(a.episodeDate || "").localeCompare(
+              String(b.episodeDate || "")
+            );
+          });
       const publicEpisodes =
         episodes
           .filter(isPublic)
