@@ -1792,7 +1792,7 @@ if (form) {
     const formData = new FormData(form);
 
     const payload = {
-      access_key: "01096a2d-214c-41a8-8039-4518b2483731",
+      access_key: (window.WEB3FORMS_CONFIG && window.WEB3FORMS_CONFIG.accessKey) || "",
       subject: "New Thinkers & Doers Application",
       name: formData.get("name") || "",
       email: formData.get("email") || "",
