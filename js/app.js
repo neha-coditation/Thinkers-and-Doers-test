@@ -675,9 +675,9 @@ function renderUpcoming(episodes) {
   }
 
   const formatUpcomingDate = date => {
-    if (!date) return "Date TBA";
+    if (!date) return "TBA";
     const parsed = new Date(date);
-    if (Number.isNaN(parsed.getTime())) return "Date TBA";
+    if (Number.isNaN(parsed.getTime())) return "TBA";
     return parsed.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -734,8 +734,37 @@ function renderUpcoming(episodes) {
         </div>
       `
       : `
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;color:${mutedColor};margin-top:16px;">
-          Guests announced soon
+        <div style="
+          display:flex;
+          align-items:center;
+          gap:14px;
+          margin-top:16px;
+        ">
+          <div style="display:flex;align-items:center;">
+            ${[1, 2, 3].map(() => `
+              <span style="
+                width:38px;
+                height:38px;
+                flex:0 0 38px;
+                border-radius:50%;
+                border:1px solid ${isNextUp ? "rgba(242,240,234,.35)" : "rgba(12,11,10,.25)"};
+                background:${isNextUp ? "#171513" : "#EAE8E2"};
+                display:block;
+                margin-right:-7px;
+                box-sizing:border-box;
+              "></span>
+            `).join("")}
+          </div>
+
+          <span style="
+            font-family:'IBM Plex Mono',monospace;
+            font-size:11px;
+            letter-spacing:.08em;
+            color:${mutedColor};
+            white-space:nowrap;
+          ">
+            Guests announced soon
+          </span>
         </div>
       `;
 
@@ -1581,17 +1610,10 @@ if (form) {
       const upcomingEpisodes =
         episodes
           .filter(isUpcoming)
-          .sort((a, b) => {
-            const numberDiff =
-              Number(a.episodeNumber || 0) -
-              Number(b.episodeNumber || 0);
-
-            if (numberDiff !== 0) return numberDiff;
-
-            return String(a.episodeDate || "").localeCompare(
-              String(b.episodeDate || "")
-            );
-          });
+          .sort((a, b) =>
+            Number(a.episodeNumber || 0) -
+            Number(b.episodeNumber || 0)
+          );
       const publicEpisodes =
         episodes
           .filter(isPublic)
