@@ -28,6 +28,9 @@
 
   const CONTENT_URL = "content.json";
 
+  // Latest episode video is hosted on Wistia (not Contentful).
+  const LATEST_WISTIA_MEDIA_ID = "m5u2mypp7p";
+
   const $ = (selector, root = document) => root.querySelector(selector);
 
   const escapeHTML = (value = "") =>
@@ -443,7 +446,7 @@
       : "";
 
     const watchUrl = episode.watchUrl || "#";
-    const episodeVideo = episode.episodeVideo || "";
+    const episodeVideo = `wistia:${LATEST_WISTIA_MEDIA_ID}`;
 
     console.log("Latest episode video URL:", episodeVideo || "<missing>");
 
@@ -1331,7 +1334,10 @@ function renderUpcoming(episodes) {
             font-size:24px;
             line-height:1;
           ">×</button>
-          <video class="td-popup-video" controls playsinline preload="metadata" style="display:block;width:100%;max-height:82vh;background:#000;"></video>
+          <div class="td-popup-video-wrap" style="display:block;width:100%;background:#000;aspect-ratio:16/9;overflow:hidden;">
+            <video class="td-popup-video" controls playsinline preload="metadata" style="display:none;width:100%;height:100%;background:#000;"></video>
+            <div class="td-wistia-video" style="display:none;width:100%;height:100%;"></div>
+          </div>
           <div style="display:flex;justify-content:flex-end;padding:12px 16px;">
             <button type="button" class="td-video-close-text" style="background:transparent;border:0;color:rgba(242,240,234,.7);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;">Close video</button>
           </div>
@@ -1341,30 +1347,66 @@ function renderUpcoming(episodes) {
 
     const modal = document.querySelector(".td-video-modal");
     const video = modal.querySelector(".td-popup-video");
+    const wistiaContainer = modal.querySelector(".td-wistia-video");
     const closeButtons = modal.querySelectorAll(".td-video-close, .td-video-close-text");
+
+    function loadWistiaPlayer(mediaId) {
+      // Load Wistia's player scripts once.
+      if (!document.querySelector('script[src="https://fast.wistia.com/player.js"]')) {
+        const script = document.createElement("script");
+        script.src = "https://fast.wistia.com/player.js";
+        script.async = true;
+        document.head.appendChild(script);
+      }
+
+      if (!document.querySelector(`script[data-wistia-embed="${mediaId}"]`)) {
+        const script = document.createElement("script");
+        script.src = `https://fast.wistia.com/embed/${mediaId}.js`;
+        script.async = true;
+        script.type = "module";
+        script.dataset.wistiaEmbed = mediaId;
+        document.head.appendChild(script);
+      }
+
+      wistiaContainer.innerHTML = `
+        <wistia-player
+          media-id="${escapeHTML(mediaId)}"
+          aspect="1.7777777777777777"
+          style="display:block;width:100%;height:100%;"
+        ></wistia-player>
+      `;
+    }
 
     function closeVideo() {
       video.pause();
       try { video.currentTime = 0; } catch (_) {}
       video.removeAttribute("src");
       video.load();
+
+      wistiaContainer.innerHTML = "";
+      wistiaContainer.style.display = "none";
+      video.style.display = "none";
+
       modal.style.display = "none";
       modal.setAttribute("aria-hidden", "true");
       document.body.style.overflow = "";
     }
 
-    function openVideo(url) {
-      if (!url) return;
-      video.src = url;
+    function openVideo() {
+      // The Latest Episode video is hosted on Wistia, not Contentful.
+      const mediaId = "m5u2mypp7p";
+
+      video.pause();
+      video.removeAttribute("src");
       video.load();
+      video.style.display = "none";
+
+      wistiaContainer.style.display = "block";
+      loadWistiaPlayer(mediaId);
+
       modal.style.display = "flex";
       modal.setAttribute("aria-hidden", "false");
       document.body.style.overflow = "hidden";
-
-      const playPromise = video.play();
-      if (playPromise && typeof playPromise.catch === "function") {
-        playPromise.catch(error => console.warn("Video autoplay was blocked:", error));
-      }
     }
 
     closeButtons.forEach(button => button.addEventListener("click", closeVideo));
@@ -1383,7 +1425,7 @@ function renderUpcoming(episodes) {
       const trigger = event.target.closest(".td-video-trigger");
       if (!trigger) return;
       event.preventDefault();
-      openVideo(trigger.getAttribute("data-video-url"));
+      openVideo();
     });
   }
 
