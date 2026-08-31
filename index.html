@@ -17,117 +17,208 @@
 <script src="js/config.js"></script>
 <script defer="True" src="js/app.js"></script>
 
-  <style id="td-upcoming-responsive-fix">
-  /* Upcoming section: keep the generated episode card inside the viewport. */
-  #upcoming,
-  #upcoming .td-pad,
-  #upcoming-list,
-  #upcoming-list > * {
-    max-width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
+<style id="td-upcoming-responsive-fix">
+
+/* =========================================================
+   UPCOMING EPISODE — RESPONSIVE FIX
+   ========================================================= */
+
+#upcoming {
+  overflow: hidden;
+}
+
+#upcoming .td-pad {
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+#upcoming-list {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-sizing: border-box;
+}
+
+/* Actual generated class is .td-card.td-episode-card */
+#upcoming-list .td-card.td-episode-card {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+
+  box-sizing: border-box !important;
+
+  display: flex !important;
+  flex-direction: row !important;
+
+  overflow: hidden !important;
+
+  flex: none !important;
+}
+
+/* Prevent children from forcing the card wider */
+#upcoming-list .td-card.td-episode-card > * {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Images */
+#upcoming-list .td-card.td-episode-card img {
+  display: block;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 940px) {
+
+  #upcoming {
+    padding: 88px 0 !important;
+  }
+
+  #upcoming .td-pad {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
   }
 
   #upcoming-list {
     width: 100%;
-    overflow: visible;
+    gap: 18px;
   }
 
-  #upcoming-list .td-upcoming-card {
+  #upcoming-list .td-card.td-episode-card {
+    width: 100% !important;
+    max-width: 100% !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+
+    height: auto !important;
+    min-height: 0 !important;
+
+    flex: none !important;
+
+    padding: 30px !important;
+    gap: 0 !important;
+  }
+
+  #upcoming-list .td-card.td-episode-card > * {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  #upcoming-list .td-card.td-episode-card img {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+
+    display: block !important;
+    object-fit: cover !important;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+  #upcoming {
+    padding: 72px 0 !important;
+  }
+
+  #upcoming .td-pad {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  #upcoming .td-row {
+    margin-bottom: 36px !important;
+  }
+
+  #upcoming-list {
+    width: 100% !important;
+    gap: 14px !important;
+  }
+
+  #upcoming-list .td-card.td-episode-card {
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
-    box-sizing: border-box !important;
-    overflow: hidden;
+
+    display: flex !important;
+    flex-direction: column !important;
+
+    height: auto !important;
+    min-height: 0 !important;
+
+    flex: none !important;
+
+    padding: 24px !important;
+    margin: 0 !important;
+
+    overflow: hidden !important;
   }
 
-  #upcoming-list .td-upcoming-card img {
-    display: block;
-    max-width: 100%;
-    height: auto;
-    object-fit: cover;
+  /* Make image use the complete card width */
+  #upcoming-list .td-card.td-episode-card img {
+    display: block !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+
+    height: auto !important;
+
+    object-fit: cover !important;
   }
 
-  #upcoming-list .td-upcoming-card > *,
-  #upcoming-list .td-upcoming-card > * > * {
-    min-width: 0;
-    max-width: 100%;
-    box-sizing: border-box;
-  }
-
-  #upcoming-list .td-upcoming-card h1,
-  #upcoming-list .td-upcoming-card h2,
-  #upcoming-list .td-upcoming-card h3,
-  #upcoming-list .td-upcoming-card h4,
-  #upcoming-list .td-upcoming-card p,
-  #upcoming-list .td-upcoming-card span {
+  /* Don't let text create horizontal overflow */
+  #upcoming-list .td-card.td-episode-card h1,
+  #upcoming-list .td-card.td-episode-card h2,
+  #upcoming-list .td-card.td-episode-card h3,
+  #upcoming-list .td-card.td-episode-card h4,
+  #upcoming-list .td-card.td-episode-card p,
+  #upcoming-list .td-card.td-episode-card span,
+  #upcoming-list .td-card.td-episode-card div {
+    min-width: 0 !important;
+    max-width: 100% !important;
     overflow-wrap: anywhere;
   }
 
-  @media (max-width: 940px) {
-    #upcoming {
-      padding: 88px 0 !important;
-    }
+  /* Speakers */
+  #upcoming-list .td-card.td-episode-card .speakers,
+  #upcoming-list .td-card.td-episode-card [class*="speaker"] {
+    max-width: 100% !important;
+    flex-wrap: wrap !important;
+  }
+}
 
-    #upcoming .td-pad {
-      padding-left: 20px !important;
-      padding-right: 20px !important;
-    }
 
-    #upcoming-list .td-upcoming-card {
-      display: flex !important;
-      flex-direction: column !important;
-      width: 100% !important;
-      min-height: 0 !important;
-      height: auto !important;
-      gap: 0 !important;
-    }
+/* =========================================================
+   VERY SMALL PHONES
+   ========================================================= */
 
-    #upcoming-list .td-upcoming-card > * {
-      width: 100% !important;
-      max-width: 100% !important;
-    }
+@media (max-width: 380px) {
 
-    #upcoming-list .td-upcoming-card img {
-      width: 100% !important;
-      max-width: 100% !important;
-      height: auto !important;
-    }
+  #upcoming .td-pad {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
   }
 
-  @media (max-width: 600px) {
-    #upcoming {
-      padding: 72px 0 !important;
-    }
-
-    #upcoming .td-pad {
-      padding-left: 16px !important;
-      padding-right: 16px !important;
-    }
-
-    #upcoming .td-row {
-      margin-bottom: 36px !important;
-    }
-
-    #upcoming-list {
-      gap: 14px !important;
-    }
-
-    #upcoming-list .td-upcoming-card {
-         flex: initial !important;
-      padding: 24px !important;
-    }
-
-    #upcoming-list .td-upcoming-card img {
-      max-width: 100% !important;
-    }
-
-    #upcoming-list .td-upcoming-card .speakers,
-    #upcoming-list .td-upcoming-card [class*="speaker"] {
-      flex-wrap: wrap !important;
-      max-width: 100% !important;
-    }
+  #upcoming-list .td-card.td-episode-card {
+    padding: 18px !important;
   }
+
+}
 </style>
 
 </head>
