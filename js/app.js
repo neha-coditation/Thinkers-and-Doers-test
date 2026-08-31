@@ -703,7 +703,7 @@ function renderUpcoming(episodes) {
           style="width:100%;height:100%;object-fit:cover;display:block;">
       `
       : `
-        <div style="width:100%;height:100%;background:repeating-linear-gradient(135deg,rgba(242,240,234,.16) 0 2px,transparent 2px 11px);display:flex;align-items:center;justify-content:center;">
+        <div style="width:100%;height:100%;background:repeating-linear-gradient(135deg,rgba(242,240,234,.16) 0 2px,transparent 2px 11px);align-items:center;justify-content:center;">
           <span style="font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:${mutedColor};">
             episode still
           </span>
