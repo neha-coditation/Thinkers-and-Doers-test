@@ -342,8 +342,8 @@
     return getStatus(episode) === "public";
   }
 
-  function isUpcoming(episode) {
-    return getStatus(episode) === "upcoming";
+  function is(episode) {
+    return getStatus(episode) === "";
   }
 
   function sortByNumberDescending(a, b) {
@@ -700,8 +700,7 @@ function renderUpcoming(episodes) {
     const image = thumbnail
       ? `
         <img src="${escapeHTML(thumbnail)}" alt="${escapeHTML(episode.name)}" loading="lazy"
-         const upcomingThumbnailImageStyle =
-  'width:100%;height:auto;object-fit:cover;display:block;';
+        style="width:100%;height:100%;object-fit:cover;display:block;"
 
       `
       : `
