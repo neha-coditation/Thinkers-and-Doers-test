@@ -701,7 +701,6 @@ function renderUpcoming(episodes) {
       ? `
         <img src="${escapeHTML(thumbnail)}" alt="${escapeHTML(episode.name)}" loading="lazy"
         style="width:100%;height:100%;object-fit:cover;display:block;"
-
       `
       : `
         <div style="width:100%;height:100%;background:repeating-linear-gradient(135deg,rgba(242,240,234,.16) 0 2px,transparent 2px 11px);display:flex;align-items:center;justify-content:center;">
