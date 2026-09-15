@@ -444,11 +444,7 @@
 
     const watchUrl = episode.watchUrl || "#";
 
-    // Keep ALL episode data (title, description, thumbnail, guests, etc.) from Contentful.
-    // Only the actual Latest Episode video is served by Wistia.
-    const episodeVideo = `wistia:m5u2mypp7p`;
-
-    console.log("Latest episode video source: Wistia m5u2mypp7p");
+   
 
     media.innerHTML = episodeVideo
       ? `
