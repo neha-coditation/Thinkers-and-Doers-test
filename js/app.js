@@ -127,6 +127,11 @@
         episode?.duration ??
         null,
       watchUrl: episode?.watchUrl || "#",
+      episodeYoutubeLink:
+        episode?.episodeYoutubeLink ||
+        episode?.youtubeUrl ||
+        episode?.youtube ||
+        "",
       episodeVideo: getVideoUrl(episode?.episodeVideo || episode?.video || ""),
       episodeThumbnail: getImageUrl(
         episode?.episodeThumbnail || episode?.thumbnail || ""
@@ -309,7 +314,6 @@
         ? (await Promise.all(fields.guests.map(resolveGuest))).filter(Boolean)
         : [];
 
-      const episodeVideo = await resolveAsset(fields.episodeVideo, true);
       const episodeThumbnail = await resolveAsset(fields.episodeThumbnail, true);
       const stillImage = await resolveAsset(fields.stillImage, true);
 
@@ -328,7 +332,8 @@
         durationMinutes:
           fields.duration ?? null,
         watchUrl: fields.watchUrl || "#",
-        episodeVideo,
+        // YouTube URL entered in Contentful's optional Episode Youtube link field.
+        episodeYoutubeLink: fields.episodeYoutubeLink || "",
         episodeThumbnail,
         stillImage,
         guests
@@ -444,7 +449,8 @@
 
     const watchUrl = episode.watchUrl || "#";
 
-   
+    // Use only the YouTube URL stored in Contentful.
+    const episodeVideo = String(episode.episodeYoutubeLink || "").trim();
 
     media.innerHTML = episodeVideo
       ? `
@@ -850,7 +856,8 @@ function renderUpcoming(episodes) {
     }
 
     root.innerHTML = episodes.map(episode => {
-      const episodeVideo = episode.episodeVideo || "";
+      // Prefer the YouTube URL stored on this Episode in Contentful.
+      const episodeVideo = String(episode.episodeYoutubeLink || "").trim();
       const watchUrl = episode.watchUrl || "#";
 
       const formattedDate = episode.episodeDate
@@ -1331,7 +1338,7 @@ function renderUpcoming(episodes) {
             line-height:1;
           ">×</button>
           <video class="td-popup-video" controls playsinline preload="metadata" style="display:none;width:100%;max-height:82vh;background:#000;"></video>
-          <div class="td-wistia-video" style="display:none;width:100%;aspect-ratio:16/9;background:#000;"></div>
+          <div class="td-youtube-video" style="display:none;width:100%;aspect-ratio:16/9;background:#000;"></div>
           <div style="display:flex;justify-content:flex-end;padding:12px 16px;">
             <button type="button" class="td-video-close-text" style="background:transparent;border:0;color:rgba(242,240,234,.7);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;">Close video</button>
           </div>
@@ -1341,28 +1348,51 @@ function renderUpcoming(episodes) {
 
     const modal = document.querySelector(".td-video-modal");
     const video = modal.querySelector(".td-popup-video");
-    const wistiaContainer = modal.querySelector(".td-wistia-video");
+    const youtubeContainer = modal.querySelector(".td-youtube-video");
     const closeButtons = modal.querySelectorAll(".td-video-close, .td-video-close-text");
 
-    function loadWistiaPlayer(mediaId) {
-      if (!document.querySelector('script[src="https://fast.wistia.com/player.js"]')) {
-        const script = document.createElement("script");
-        script.src = "https://fast.wistia.com/player.js";
-        script.async = true;
-        document.head.appendChild(script);
+    function getYouTubeVideoId(url) {
+      if (!url) return "";
+
+      try {
+        const parsed = new URL(url, window.location.href);
+        const host = parsed.hostname.replace(/^www\./, "").toLowerCase();
+
+        if (host === "youtu.be") {
+          return parsed.pathname.split("/").filter(Boolean)[0] || "";
+        }
+
+        if (
+          host === "youtube.com" ||
+          host === "m.youtube.com" ||
+          host === "youtube-nocookie.com"
+        ) {
+          if (parsed.pathname === "/watch") {
+            return parsed.searchParams.get("v") || "";
+          }
+
+          const parts = parsed.pathname.split("/").filter(Boolean);
+          if (["embed", "shorts", "live"].includes(parts[0])) {
+            return parts[1] || "";
+          }
+        }
+      } catch (_) {
+        return "";
       }
 
-      if (!document.querySelector(`script[data-wistia-embed="${mediaId}"]`)) {
-        const script = document.createElement("script");
-        script.src = `https://fast.wistia.com/embed/${mediaId}.js`;
-        script.async = true;
-        script.type = "module";
-        script.dataset.wistiaEmbed = mediaId;
-        document.head.appendChild(script);
-      }
+      return "";
+    }
 
-      wistiaContainer.innerHTML = `
-        <wistia-player media-id="${escapeHTML(mediaId)}" aspect="1.7777777777777777" style="display:block;width:100%;height:100%;"></wistia-player>
+    function loadYouTubePlayer(videoId) {
+      youtubeContainer.innerHTML = `
+        <iframe
+          src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?autoplay=1&rel=0&modestbranding=1"
+          title="Thinkers & Doers episode"
+          loading="eager"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+          style="display:block;width:100%;height:100%;border:0;"
+        ></iframe>
       `;
     }
 
@@ -1372,8 +1402,8 @@ function renderUpcoming(episodes) {
       video.removeAttribute("src");
       video.load();
       video.style.display = "none";
-      wistiaContainer.innerHTML = "";
-      wistiaContainer.style.display = "none";
+      youtubeContainer.innerHTML = "";
+      youtubeContainer.style.display = "none";
       modal.style.display = "none";
       modal.setAttribute("aria-hidden", "true");
       document.body.style.overflow = "";
@@ -1382,28 +1412,22 @@ function renderUpcoming(episodes) {
     function openVideo(url) {
       if (!url) return;
 
-      if (url.startsWith("wistia:")) {
-        video.style.display = "none";
-        wistiaContainer.style.display = "block";
-        loadWistiaPlayer(url.slice("wistia:".length));
-      } else {
-        wistiaContainer.innerHTML = "";
-        wistiaContainer.style.display = "none";
-        video.style.display = "block";
-        video.src = url;
-        video.load();
+      const youtubeId = getYouTubeVideoId(url);
+      if (!youtubeId) {
+        console.warn("Invalid YouTube URL from Contentful:", url);
+        return;
       }
+
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
+      video.style.display = "none";
+      youtubeContainer.style.display = "block";
+      loadYouTubePlayer(youtubeId);
 
       modal.style.display = "flex";
       modal.setAttribute("aria-hidden", "false");
       document.body.style.overflow = "hidden";
-
-      if (!url.startsWith("wistia:")) {
-        const playPromise = video.play();
-        if (playPromise && typeof playPromise.catch === "function") {
-          playPromise.catch(error => console.warn("Video autoplay was blocked:", error));
-        }
-      }
     }
 
     closeButtons.forEach(button => button.addEventListener("click", closeVideo));
