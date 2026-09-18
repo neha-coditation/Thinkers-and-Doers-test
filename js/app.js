@@ -890,11 +890,6 @@ function renderUpcoming(episodes) {
           </span>
         `;
 
-      const guests = Array.isArray(episode.guests)
-        ? episode.guests.filter(guest => guest && guest.name).slice(0, 3)
-        : [];
-
-      const guestNames = guests.map(guest => escapeHTML(guest.name)).join(" · ");
 
       return `
         <a
@@ -933,10 +928,6 @@ function renderUpcoming(episodes) {
               : ""
             }
 
-            ${guestNames
-              ? `<div class="td-archive-guests">${guestNames}</div>`
-              : ""
-            }
 
             <div class="td-archive-watch">
               <span>${episodeVideo ? "Watch episode" : "View episode"}</span>
