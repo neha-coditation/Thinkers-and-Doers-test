@@ -946,7 +946,7 @@ function renderUpcoming(episodes) {
   }
 
 
-  function renderGuests(episodes) {
+    function renderGuests(episodes) {
     const root = $("#guest-grid");
     if (!root) return;
 
@@ -960,34 +960,44 @@ function renderUpcoming(episodes) {
       });
     });
 
-    window.tdGuests = [...guestMap.values()].slice(0, 8);
+    // Use every Contentful guest. Do not cap the list so new guests
+    // automatically appear in the ticker without code changes.
+    window.tdGuests = [...guestMap.values()];
 
-    // Two-way ticker: both rows are populated from Contentful.
-    // Duplicating each row creates a seamless infinite loop.
     const guests = window.tdGuests;
-    const secondRowGuests = guests.length > 1
-      ? [...guests.slice(2), ...guests.slice(0, 2)]
-      : guests;
 
-    const guestCard = (guest, index) => `
-      <button type="button"
-        class="td-guest-ticker-card"
-        data-guest-index="${index}"
-        aria-label="View ${escapeHTML(guest.name)}">
-        <span class="td-guest-ticker-image">
-          <img src="${escapeHTML(guest.headshot)}"
-            alt="${escapeHTML(guest.name)}"
-            loading="lazy">
-        </span>
-        <span class="td-guest-ticker-copy">
-          <span class="td-guest-ticker-name">${escapeHTML(guest.name)}</span>
-          <span class="td-guest-ticker-headline">${escapeHTML(guest.headline || "")}</span>
-        </span>
-      </button>
-    `;
+    // Put each guest on only one visible row.
+    // Alternating guests keeps the two rows balanced as the Contentful
+    // guest list grows and prevents the same person appearing on both rows.
+    const firstRowGuests = guests.filter((_, index) => index % 2 === 0);
+    const secondRowGuests = guests.filter((_, index) => index % 2 === 1);
+
+    const guestCard = (guest) => {
+      const index = guests.indexOf(guest);
+      return `
+        <button type="button"
+          class="td-guest-ticker-card"
+          data-guest-index="${index}"
+          aria-label="View ${escapeHTML(guest.name)}">
+          <span class="td-guest-ticker-image">
+            <img src="${escapeHTML(guest.headshot)}"
+              alt="${escapeHTML(guest.name)}"
+              loading="lazy">
+          </span>
+          <span class="td-guest-ticker-copy">
+            <span class="td-guest-ticker-name">${escapeHTML(guest.name)}</span>
+            <span class="td-guest-ticker-headline">${escapeHTML(guest.headline || "")}</span>
+          </span>
+        </button>
+      `;
+    };
 
     const makeTrack = (items, direction) => {
-      const cards = items.map((guest, index) => guestCard(guest, guests.indexOf(guest))).join("");
+      // If there are no guests for a row, keep that row out of the DOM.
+      if (!items.length) return "";
+
+      const cards = items.map(guestCard).join("");
+
       return `
         <div class="td-guest-ticker-row td-guest-ticker-${direction}">
           <div class="td-guest-ticker-track">
@@ -999,7 +1009,7 @@ function renderUpcoming(episodes) {
     };
 
     root.innerHTML = `
-      ${makeTrack(guests, "ltr")}
+      ${makeTrack(firstRowGuests, "ltr")}
       ${makeTrack(secondRowGuests, "rtl")}
     `;
 
@@ -1010,6 +1020,7 @@ function renderUpcoming(episodes) {
       });
     });
   }
+
   function ensureGuestModal() {
     if (document.querySelector(".td-guest-modal")) return;
 
