@@ -697,7 +697,7 @@ function renderUpcoming(episodes) {
     const mutedColor = isNextUp ? "rgba(242,240,234,.55)" : "rgba(12,11,10,.55)";
     const dateLabel = formatUpcomingDate(episode.episodeDate);
 
-    const thumbnail = episode.episodeThumbnail || episode.stillImage || "";
+    const thumbnail = episode.stillImage || episode.episodeThumbnail || "";
 
     const image = thumbnail
       ? `
@@ -875,7 +875,7 @@ function renderUpcoming(episodes) {
       ].filter(Boolean).join(" · ");
 
       // Contentful thumbnail first, then still image as a fallback.
-      const thumbnail = episode.episodeThumbnail || episode.stillImage || "";
+      const thumbnail = episode.stillImage || episode.episodeThumbnail || "";
       const thumbnailMarkup = thumbnail
         ? `
           <img
