@@ -185,7 +185,7 @@ html{scroll-behavior:smooth}body{overflow-x:hidden}img{max-width:100%}.td-episod
 
 
 /* =========================================================
-   All Episodes â€” Voices-style 4-column grid with thumbnails
+   All Episodes â€” Voices-style grid with clean thumbnail/play UI
    ========================================================= */
 
 #archive-list.td-archive-grid {
@@ -193,13 +193,19 @@ html{scroll-behavior:smooth}body{overflow-x:hidden}img{max-width:100%}.td-episod
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 36px 26px;
   width: 100%;
+  margin: 0;
+  padding: 0;
   border-top: 0 !important;
+  box-sizing: border-box;
 }
 
 .td-archive-card {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
   color: #F2F0EA;
   background: transparent;
   border: 1px solid rgba(242,240,234,.20);
@@ -207,9 +213,8 @@ html{scroll-behavior:smooth}body{overflow-x:hidden}img{max-width:100%}.td-episod
   overflow: hidden;
   opacity: 0;
   transform: translateY(16px);
-  transition:
-    transform 350ms ease,
-    border-color 300ms ease;
+  transition: transform 350ms ease, border-color 300ms ease;
+  box-sizing: border-box;
 }
 
 .td-archive-card:hover {
@@ -219,17 +224,28 @@ html{scroll-behavior:smooth}body{overflow-x:hidden}img{max-width:100%}.td-episod
 
 .td-archive-thumbnail {
   position: relative;
+  display: block;
   width: 100%;
   aspect-ratio: 16 / 9;
+  margin: 0;
+  padding: 0;
   overflow: hidden;
   background: #11100f;
+  border: 0;
   border-bottom: 1px solid rgba(242,240,234,.20);
+  box-sizing: border-box;
 }
 
-.td-archive-thumbnail img {
+.td-archive-thumbnail img,
+.td-archive-thumb-placeholder {
   width: 100%;
   height: 100%;
   display: block;
+  margin: 0;
+  padding: 0;
+}
+
+.td-archive-thumbnail img {
   object-fit: cover;
   transition: transform 600ms cubic-bezier(.2,.8,.2,1);
 }
@@ -239,8 +255,6 @@ html{scroll-behavior:smooth}body{overflow-x:hidden}img{max-width:100%}.td-episod
 }
 
 .td-archive-thumb-placeholder {
-  width: 100%;
-  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -251,44 +265,76 @@ html{scroll-behavior:smooth}body{overflow-x:hidden}img{max-width:100%}.td-episod
   text-align: center;
 }
 
+/* Play button sits on the thumbnail â€” no arrow icon. */
 .td-archive-play {
   position: absolute;
-  right: 12px;
-  bottom: 12px;
-  width: 40px;
-  height: 40px;
+  right: 14px;
+  bottom: 14px;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  margin: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 1px solid rgba(242,240,234,.55);
+  border-radius: 50%;
   background: rgba(0,0,0,.78);
-  border: 1px solid rgba(242,240,234,.4);
   color: #F2F0EA;
-  font: 18px 'IBM Plex Mono', monospace;
+  font-size: 0;
+  line-height: 1;
+  backdrop-filter: blur(5px);
+  box-sizing: border-box;
+  transition: transform 250ms ease, background 250ms ease;
+}
+
+.td-archive-play::before {
+  content: "";
+  display: block;
+  width: 0;
+  height: 0;
+  margin-left: 3px;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left: 10px solid #F2F0EA;
+}
+
+.td-archive-card:hover .td-archive-play {
+  transform: scale(1.08);
+  background: rgba(0,0,0,.9);
 }
 
 .td-archive-number {
   position: absolute;
-  left: 12px;
-  bottom: 12px;
+  left: 14px;
+  bottom: 14px;
   padding: 6px 8px;
+  margin: 0;
   background: rgba(0,0,0,.78);
   color: rgba(242,240,234,.75);
   font: 10px 'IBM Plex Mono', monospace;
   letter-spacing: .08em;
+  backdrop-filter: blur(5px);
+  box-sizing: border-box;
 }
 
 .td-archive-card-body {
   display: flex;
   flex-direction: column;
-  min-height: 190px;
-  padding: 17px 2px 0;
+  min-height: 205px;
+  margin: 0;
+  padding: 18px 18px 16px;
+  box-sizing: border-box;
 }
 
 .td-archive-meta {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
   gap: 10px;
-  margin-bottom: 11px;
+  width: 100%;
+  margin: 0 0 14px;
+  padding: 0;
   color: rgba(242,240,234,.48);
   font: 10px/1.4 'IBM Plex Mono', monospace;
   letter-spacing: .07em;
@@ -297,6 +343,7 @@ html{scroll-behavior:smooth}body{overflow-x:hidden}img{max-width:100%}.td-episod
 
 .td-archive-title {
   margin: 0;
+  padding: 0;
   color: #F2F0EA;
   font-size: clamp(18px, 1.55vw, 24px);
   line-height: 1.08;
@@ -307,6 +354,7 @@ html{scroll-behavior:smooth}body{overflow-x:hidden}img{max-width:100%}.td-episod
 .td-archive-description {
   display: -webkit-box;
   margin: 10px 0 0;
+  padding: 0;
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
@@ -316,7 +364,8 @@ html{scroll-behavior:smooth}body{overflow-x:hidden}img{max-width:100%}.td-episod
 }
 
 .td-archive-guests {
-  margin-top: 12px;
+  margin: 12px 0 0;
+  padding: 0;
   color: rgba(242,240,234,.42);
   font: 10px/1.45 'IBM Plex Mono', monospace;
   white-space: nowrap;
@@ -329,8 +378,9 @@ html{scroll-behavior:smooth}body{overflow-x:hidden}img{max-width:100%}.td-episod
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: auto;
-  padding-top: 15px;
+  margin: auto 0 0;
+  padding: 15px 0 0;
+  border-top: 1px solid rgba(242,240,234,.13);
   color: rgba(242,240,234,.72);
   font: 10px 'IBM Plex Mono', monospace;
   letter-spacing: .1em;
@@ -366,10 +416,23 @@ html{scroll-behavior:smooth}body{overflow-x:hidden}img{max-width:100%}.td-episod
   }
 
   .td-archive-card-body {
-    min-height: 175px;
+    min-height: 185px;
+    padding: 16px 16px 15px;
   }
 
   .td-archive-title {
     font-size: 22px;
+  }
+
+  .td-archive-play {
+    width: 44px;
+    height: 44px;
+    right: 11px;
+    bottom: 11px;
+  }
+
+  .td-archive-number {
+    left: 11px;
+    bottom: 11px;
   }
 }
