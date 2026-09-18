@@ -962,41 +962,54 @@ function renderUpcoming(episodes) {
 
     window.tdGuests = [...guestMap.values()].slice(0, 8);
 
-    root.innerHTML = `
-      ${window.tdGuests.map((guest, index) => `
-        <button type="button" class="td-guest-card" data-guest-index="${index}" data-reveal="1"
-          aria-label="View ${escapeHTML(guest.name)}"
-          style="all:unset;display:block;width:100%;cursor:pointer;opacity:0;transform:translateY(26px);text-align:left;">
-          <div style="aspect-ratio:3/4;background:#171513;border:1px solid rgba(242,240,234,.2);display:flex;align-items:center;justify-content:center;margin-bottom:18px;overflow:hidden;transition:transform .35s ease,border-color .35s ease;">
-            <img src="${escapeHTML(guest.headshot)}" alt="${escapeHTML(guest.name)}"
-              style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy">
-          </div>
-          <div style="font-size:18px;font-weight:700;letter-spacing:-.015em;margin-bottom:5px;">${escapeHTML(guest.name)}</div>
-          <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:rgba(242,240,234,.55);line-height:1.5;">${escapeHTML(guest.headline)}</div>
-        </button>
-      `).join("")}
+    // Two-way ticker: both rows are populated from Contentful.
+    // Duplicating each row creates a seamless infinite loop.
+    const guests = window.tdGuests;
+    const secondRowGuests = guests.length > 1
+      ? [...guests.slice(2), ...guests.slice(0, 2)]
+      : guests;
 
-      <a href="#apply" data-reveal="1"
-        style="display:flex;flex-direction:column;opacity:0;transform:translateY(26px);text-decoration:none;color:#F2F0EA;">
-        <div style="aspect-ratio:3/4;border:1px dashed rgba(242,240,234,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;margin-bottom:18px;text-align:center;padding:20px;transition:background .35s ease,border-color .35s ease,transform .35s ease;">
-          <span style="font-family:'Instrument Serif',serif;font-style:italic;font-size:48px;line-height:1;">&amp;</span>
-          <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(242,240,234,.6);">the empty chair</span>
-        </div>
-        <div style="font-size:18px;font-weight:700;letter-spacing:-.015em;margin-bottom:5px;">Could be you</div>
-        <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:rgba(242,240,234,.55);line-height:1.5;">Apply below</div>
-      </a>
+    const guestCard = (guest, index) => `
+      <button type="button"
+        class="td-guest-ticker-card"
+        data-guest-index="${index}"
+        aria-label="View ${escapeHTML(guest.name)}">
+        <span class="td-guest-ticker-image">
+          <img src="${escapeHTML(guest.headshot)}"
+            alt="${escapeHTML(guest.name)}"
+            loading="lazy">
+        </span>
+        <span class="td-guest-ticker-copy">
+          <span class="td-guest-ticker-name">${escapeHTML(guest.name)}</span>
+          <span class="td-guest-ticker-headline">${escapeHTML(guest.headline || "")}</span>
+        </span>
+      </button>
     `;
 
-    root.querySelectorAll(".td-guest-card").forEach(card => {
+    const makeTrack = (items, direction) => {
+      const cards = items.map((guest, index) => guestCard(guest, guests.indexOf(guest))).join("");
+      return `
+        <div class="td-guest-ticker-row td-guest-ticker-${direction}">
+          <div class="td-guest-ticker-track">
+            <div class="td-guest-ticker-group">${cards}</div>
+            <div class="td-guest-ticker-group" aria-hidden="true">${cards}</div>
+          </div>
+        </div>
+      `;
+    };
+
+    root.innerHTML = `
+      ${makeTrack(guests, "ltr")}
+      ${makeTrack(secondRowGuests, "rtl")}
+    `;
+
+    root.querySelectorAll(".td-guest-ticker-card").forEach(card => {
       card.addEventListener("click", () => {
         const guest = window.tdGuests[Number(card.dataset.guestIndex)];
         if (guest) openGuestModal(guest);
       });
     });
-
-    reveal();
   }
-
   function ensureGuestModal() {
     if (document.querySelector(".td-guest-modal")) return;
 
