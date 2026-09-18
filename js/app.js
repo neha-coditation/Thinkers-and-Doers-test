@@ -940,7 +940,7 @@ function renderUpcoming(episodes) {
 
             <div class="td-archive-watch">
               <span>${episodeVideo ? "Watch episode" : "View episode"}</span>
-              <span aria-hidden="true">→</span>
+              <span aria-hidden="true"></span>
             </div>
           </div>
         </a>
