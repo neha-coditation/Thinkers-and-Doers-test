@@ -436,3 +436,15 @@ html{scroll-behavior:smooth}body{overflow-x:hidden}img{max-width:100%}.td-episod
     bottom: 11px;
   }
 }
+
+
+/* All Episodes: guest names are intentionally hidden from cards */
+.td-archive-guests {
+  display: none !important;
+}
+
+
+/* All Episodes: bottom watch action removed */
+.td-archive-watch {
+  display: none !important;
+}
