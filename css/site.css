@@ -79,11 +79,11 @@ html{scroll-behavior:smooth}body{overflow-x:hidden}img{max-width:100%}.td-episod
   cursor: pointer;
   flex: 0 0 360px;
   font: inherit;
-  transition: transform .3s ease, border-color .3s ease, background .3s ease;
+  transition: border-color .3s ease, background .3s ease;
 }
 
 .td-guest-ticker-card:hover {
-  transform: translateY(-3px);
+  transform: none;
   border-color: rgba(242,240,234,.55);
   background: #1d1a18;
 }
