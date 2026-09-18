@@ -841,7 +841,7 @@ function renderUpcoming(episodes) {
   reveal();
 }
 
-    function renderArchive(episodes) {
+      function renderArchive(episodes) {
     const root = $("#archive-list");
 
     if (!root) return;
@@ -856,7 +856,6 @@ function renderUpcoming(episodes) {
     }
 
     root.innerHTML = episodes.map(episode => {
-      // Prefer the YouTube URL stored on this Episode in Contentful.
       const episodeVideo = String(episode.episodeYoutubeLink || "").trim();
       const watchUrl = episode.watchUrl || "#";
 
@@ -875,9 +874,28 @@ function renderUpcoming(episodes) {
           : ""
       ].filter(Boolean).join(" · ");
 
-      // Keep the original archive row structure.
-      // If this episode has its own stored video, the existing
-      // popup will open and play that exact video.
+      // Contentful thumbnail first, then still image as a fallback.
+      const thumbnail = episode.episodeThumbnail || episode.stillImage || "";
+      const thumbnailMarkup = thumbnail
+        ? `
+          <img
+            src="${escapeHTML(thumbnail)}"
+            alt="${escapeHTML(episode.name)}"
+            loading="lazy"
+          >
+        `
+        : `
+          <span class="td-archive-thumb-placeholder" aria-hidden="true">
+            <span>THINKERS<br>&amp; DOERS</span>
+          </span>
+        `;
+
+      const guests = Array.isArray(episode.guests)
+        ? episode.guests.filter(guest => guest && guest.name).slice(0, 3)
+        : [];
+
+      const guestNames = guests.map(guest => escapeHTML(guest.name)).join(" · ");
+
       return `
         <a
           href="${escapeHTML(episodeVideo || watchUrl)}"
@@ -885,59 +903,46 @@ function renderUpcoming(episodes) {
             ? 'target="_blank" rel="noopener noreferrer"'
             : ""
           }
-          class="td-sess${episodeVideo ? " td-video-trigger" : ""}"
+          class="td-archive-card${episodeVideo ? " td-video-trigger" : ""}"
           ${episodeVideo
             ? `data-video-url="${escapeHTML(episodeVideo)}"`
             : ""
           }
           data-reveal="1"
-          style="
-            display:grid;
-            grid-template-columns:92px 1fr 230px 52px;
-            gap:24px;
-            align-items:center;
-            padding:32px 10px;
-            border-bottom:1px solid rgba(242,240,234,.18);
-            text-decoration:none;
-            color:#F2F0EA;
-            opacity:0;
-            transform:translateY(18px);
-            cursor:pointer;
-          "
         >
-          <span style="
-            font-family:'IBM Plex Mono',monospace;
-            font-size:12px;
-            color:rgba(242,240,234,.5);
-            letter-spacing:.1em;
-          ">
-            № ${escapeHTML(episode.episodeNumber)}
-          </span>
+          <div class="td-archive-thumbnail">
+            ${thumbnailMarkup}
+            <span class="td-archive-play" aria-hidden="true">↗</span>
+            <span class="td-archive-number">
+              № ${escapeHTML(episode.episodeNumber || "")}
+            </span>
+          </div>
 
-          <span style="
-            font-size:clamp(19px,2vw,26px);
-            font-weight:700;
-            letter-spacing:-.025em;
-          ">
-            ${escapeHTML(episode.name)}
-          </span>
+          <div class="td-archive-card-body">
+            <div class="td-archive-meta">
+              <span>${escapeHTML(meta)}</span>
+              <span>Episode</span>
+            </div>
 
-          <span
-            class="td-sessmeta"
-            style="
-              font-family:'IBM Plex Mono',monospace;
-              font-size:12px;
-              color:rgba(242,240,234,.5);
-            "
-          >
-            ${escapeHTML(meta)}
-          </span>
+            <h3 class="td-archive-title">
+              ${escapeHTML(episode.name)}
+            </h3>
 
-          <span style="
-            font-family:'IBM Plex Mono',monospace;
-            font-size:18px;
-            text-align:right;
-          ">→</span>
+            ${episode.description
+              ? `<p class="td-archive-description">${escapeHTML(episode.description)}</p>`
+              : ""
+            }
+
+            ${guestNames
+              ? `<div class="td-archive-guests">${guestNames}</div>`
+              : ""
+            }
+
+            <div class="td-archive-watch">
+              <span>${episodeVideo ? "Watch episode" : "View episode"}</span>
+              <span aria-hidden="true">→</span>
+            </div>
+          </div>
         </a>
       `;
     }).join("");
